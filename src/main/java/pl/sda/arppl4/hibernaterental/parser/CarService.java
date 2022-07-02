@@ -3,7 +3,6 @@ package pl.sda.arppl4.hibernaterental.parser;
 import pl.sda.arppl4.hibernaterental.dao.GenericDao;
 import pl.sda.arppl4.hibernaterental.model.Body;
 import pl.sda.arppl4.hibernaterental.model.Car;
-import pl.sda.arppl4.hibernaterental.model.CarRent;
 import pl.sda.arppl4.hibernaterental.model.Gearbox;
 
 import java.time.DateTimeException;
@@ -17,13 +16,12 @@ import java.util.Scanner;
 public class CarService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final Scanner scanner;
-    private GenericDao <Car> dao;
-    private GenericDao <CarRent> daoRent;
+    private GenericDao<Car> dao;
 
-    public CarService(Scanner scanner, GenericDao dao, GenericDao daoRent) {
+
+    public CarService(Scanner scanner, GenericDao dao) {
         this.scanner = scanner;
         this.dao = dao;
-        this.daoRent = daoRent;
     }
 
 
@@ -49,27 +47,6 @@ public class CarService {
         } while (!command.equals("quit"));
     }
 
-    private void addRent() {
-        System.out.println("What car do you want to rent? (You have to get ID of product)");
-        Long idCar = scanner.nextLong();
-        Optional <Car> carOptional = dao.findId(idCar, Car.class);
-        if (carOptional.isPresent()){
-            Car car = carOptional.get();
-
-            System.out.println("Type your name: ");
-            String rentName = scanner.next();
-            System.out.println("Type your surname: ");
-            String rentSurname = scanner.next();
-            System.out.println("When do you want rent a car?");
-            LocalDateTime rentCarDate = loadDateWhenUserRent();
-            System.out.println("When do you want return a car?");
-            LocalDateTime returnCarDate = loadDateWhenUserReturn();
-
-            CarRent carRent = new CarRent(rentCarDate, rentName, rentSurname, car);
-
-            daoRent.rent(carRent);
-        }
-    }
 
     private void handleAddCommand() {
         System.out.println("Type name: ");
@@ -83,7 +60,7 @@ public class CarService {
         Gearbox gearbox = loadGearbox();
         System.out.println("Type amount of engine capacity");
         Double engineCapcity = scanner.nextDouble();
-        Car car = new Car(name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapcity);
+        Car car = new Car(null, name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapcity);
         dao.add(car);
     }
 
@@ -233,6 +210,7 @@ public class CarService {
         } while (firstDate == null);
         return firstDate;
     }
+
     private LocalDateTime loadDateWhenUserReturn() {
         LocalDateTime lastDate = null;
         do {

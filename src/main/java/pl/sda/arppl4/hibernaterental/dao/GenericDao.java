@@ -52,12 +52,12 @@ public class GenericDao<T> {
     public List<T> list(Class<T> classType) {
         List<T> list = new ArrayList<>();
 
-        SessionFactory fabrykaPolaczen = HibernateUtil.getSessionFactory();
-        try (Session session = fabrykaPolaczen.openSession()) {
-            TypedQuery<T> zapytanie = session.createQuery("from " + classType.getName(), classType);
-            List<T> wynikZapytania = zapytanie.getResultList();
+        SessionFactory factory = HibernateUtil.getSessionFactory();
+        try (Session session = factory.openSession()) {
+            TypedQuery<T> query = session.createQuery("from " + classType.getName(), classType);
+            List<T> queryResult = query.getResultList();
 
-            list.addAll(wynikZapytania);
+            list.addAll(queryResult);
         } catch (SessionException sessionException) {
             System.err.println("Błąd wczytywania danych.");
         }

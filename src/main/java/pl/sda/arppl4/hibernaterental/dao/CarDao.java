@@ -67,12 +67,12 @@ public class CarDao implements ICarDao {
         SessionFactory factory = HibernateUtil.getSessionFactory();
 
         try (Session session = factory.openSession()) {
-            TypedQuery<Car> question = session.createQuery("from Car ", Car.class);
+            TypedQuery<Car> question = session.createQuery("SELECT c from Car c LEFT JOIN FETCH c.rents", Car.class);
             List<Car> resultOfQuestion = question.getResultList();
 
             carList.addAll(resultOfQuestion);
         } catch (SessionException se) {
-            System.err.println("Błąd wczytywania danych");
+            System.err.println("Wrong data");
         }
         return carList;
     }

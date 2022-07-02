@@ -16,7 +16,7 @@ import java.util.Scanner;
 public class CarService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final Scanner scanner;
-    private GenericDao<Car> dao;
+    private final GenericDao<Car> dao;
 
 
     public CarService(Scanner scanner, GenericDao dao) {

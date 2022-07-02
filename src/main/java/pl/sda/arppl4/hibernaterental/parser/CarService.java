@@ -1,7 +1,6 @@
 package pl.sda.arppl4.hibernaterental.parser;
 
-import pl.sda.arppl4.hibernaterental.dao.CarDao;
-import pl.sda.arppl4.hibernaterental.dao.CarDaoRent;
+import pl.sda.arppl4.hibernaterental.dao.GenericDao;
 import pl.sda.arppl4.hibernaterental.model.Body;
 import pl.sda.arppl4.hibernaterental.model.Car;
 import pl.sda.arppl4.hibernaterental.model.CarRent;
@@ -18,10 +17,10 @@ import java.util.Scanner;
 public class CarService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final Scanner scanner;
-    private final CarDao dao;
-    private final CarDaoRent daoRent;
+    private GenericDao <Car> dao;
+    private GenericDao <CarRent> daoRent;
 
-    public CarService(Scanner scanner, CarDao dao, CarDaoRent daoRent) {
+    public CarService(Scanner scanner, GenericDao dao, GenericDao daoRent) {
         this.scanner = scanner;
         this.dao = dao;
         this.daoRent = daoRent;
@@ -53,7 +52,7 @@ public class CarService {
     private void addRent() {
         System.out.println("What car do you want to rent? (You have to get ID of product)");
         Long idCar = scanner.nextLong();
-        Optional <Car> carOptional = dao.returnCar(idCar);
+        Optional <Car> carOptional = dao.findId(idCar, Car.class);
         if (carOptional.isPresent()){
             Car car = carOptional.get();
 
@@ -68,7 +67,7 @@ public class CarService {
 
             CarRent carRent = new CarRent(rentCarDate, rentName, rentSurname, car);
 
-            daoRent.rentCar(carRent);
+            daoRent.rent(carRent);
         }
     }
 
@@ -85,11 +84,11 @@ public class CarService {
         System.out.println("Type amount of engine capacity");
         Double engineCapcity = scanner.nextDouble();
         Car car = new Car(name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapcity);
-        dao.addCar(car);
+        dao.add(car);
     }
 
     private void handleListCommand() {
-        List<Car> carList = dao.returnCarsList();
+        List<Car> carList = dao.list(Car.class);
         for (Car car : carList) {
             System.out.println(car);
         }
@@ -97,9 +96,9 @@ public class CarService {
     }
 
     private void handleShowCommand() {
-        System.out.println("What car do you want to see? (You have to get ID of product)");
+        System.out.println("What car do you want to see? (You have to get ID of car)");
         Long idCar = scanner.nextLong();
-        List<Car> carList = dao.returnCarsList();
+        List<Car> carList = dao.list(Car.class);
         for (Car car : carList) {
             if (car.getId() == idCar) {
                 System.out.println(car);
@@ -111,7 +110,7 @@ public class CarService {
         Car car;
         System.out.println("What car do you need? (id)");
         Long idCar = scanner.nextLong();
-        Optional<Car> optionalCar = dao.returnCar(idCar);
+        Optional<Car> optionalCar = dao.showCar(idCar, Car.class);
         if (optionalCar.isPresent()) {
             System.out.println("What you want to update? name/body/date(production/brand)/amount(passengers)/gearbox/engine(capacity)");
             String text = scanner.next();
@@ -145,7 +144,7 @@ public class CarService {
                 Double engineCapacity = scanner.nextDouble();
                 car.setEngineCapacity(engineCapacity);
             }
-            dao.updateCar(car);
+            dao.update(car);
             System.out.println(car + "updated");
         } else {
             System.out.println("Input is incorrect");
@@ -155,9 +154,9 @@ public class CarService {
     private void handleDeleteCommand() {
         System.out.println("Enter the ID of the car what you want to remove");
         Long id = scanner.nextLong();
-        Optional<Car> optionalCar = dao.returnCar(id);
+        Optional<Car> optionalCar = dao.showCar(id, Car.class);
         if (optionalCar.isPresent()) {
-            dao.deleteCar(optionalCar.get());
+            dao.remove(optionalCar.get());
             System.out.println("Car removed");
         } else {
             System.out.println("Car not found");
@@ -173,7 +172,7 @@ public class CarService {
                 String unitString = scanner.next();
                 gearbox = Gearbox.valueOf(unitString.toUpperCase());
             } catch (IllegalArgumentException iae) {
-                System.err.println("Wrong unit, please type unit (unit/gram/milliliter)");
+                System.err.println("Wrong unit, please type unit (manual/auto)");
             }
         } while (gearbox == null);
         return gearbox;
@@ -187,7 +186,7 @@ public class CarService {
                 String unitString = scanner.next();
                 body = Body.valueOf(unitString.toUpperCase());
             } catch (IllegalArgumentException iae) {
-                System.err.println("Wrong unit, please type unit (unit/gram/milliliter)");
+                System.err.println("Wrong unit, please type unit (sedan/cabrio/suv)");
             }
         } while (body == null);
         return body;

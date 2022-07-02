@@ -14,9 +14,11 @@ import java.time.LocalDate;
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String name;
     private String brand;
-    private LocalDate date;
+    private LocalDate productionDate;
     @Enumerated
     private Body body;
     private int amountOfPassengers;

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CarDao implements ICarDao{
+public class CarDao implements ICarDao {
 
     @Override
     public void addCar(Car car) {
@@ -67,7 +67,7 @@ public class CarDao implements ICarDao{
         SessionFactory factory = HibernateUtil.getSessionFactory();
 
         try (Session session = factory.openSession()) {
-            TypedQuery<Car> question = session.createQuery("from Product ", Car.class);
+            TypedQuery<Car> question = session.createQuery("from Car ", Car.class);
             List<Car> resultOfQuestion = question.getResultList();
 
             carList.addAll(resultOfQuestion);

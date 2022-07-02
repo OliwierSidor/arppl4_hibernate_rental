@@ -1,26 +1,33 @@
 package pl.sda.arppl4.hibernaterental.parser;
 
 import pl.sda.arppl4.hibernaterental.dao.CarDao;
+import pl.sda.arppl4.hibernaterental.dao.CarDaoRent;
 import pl.sda.arppl4.hibernaterental.model.Body;
 import pl.sda.arppl4.hibernaterental.model.Car;
+import pl.sda.arppl4.hibernaterental.model.CarRent;
 import pl.sda.arppl4.hibernaterental.model.Gearbox;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 
 public class CarService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final Scanner scanner;
     private final CarDao dao;
+    private final CarDaoRent daoRent;
 
-    public CarService(Scanner scanner, CarDao dao) {
+    public CarService(Scanner scanner, CarDao dao, CarDaoRent daoRent) {
         this.scanner = scanner;
         this.dao = dao;
+        this.daoRent = daoRent;
     }
+
 
     public void handleCommand() {
         String command;
@@ -44,38 +51,26 @@ public class CarService {
         } while (!command.equals("quit"));
     }
 
-    private void handleShowCommand() {
-        System.out.println("What product do you want to see? (You have to get ID of product)");
+    private void addRent() {
+        System.out.println("What car do you want to rent? (You have to get ID of product)");
         Long idCar = scanner.nextLong();
-        List<Car> carList = dao.returnCarsList();
-        for (Car car : carList) {
-            if (car.getId() == idCar) {
-                System.out.println(car);
-            }
-        }
-    }
+        Optional <Car> carOptional = dao.returnCar(idCar);
+        if (carOptional.isPresent()){
+            Car car = carOptional.get();
 
-    private void handleDeleteCommand() {
-        System.out.println("Enter the ID of the car what you want to remove");
-        Long id = scanner.nextLong();
-        Optional<Car> optionalCar = dao.returnCar(id);
-        if (optionalCar.isPresent()) {
-            dao.deleteCar(optionalCar.get());
-            System.out.println("Car removed");
-        }  else {
-            System.out.println("Car not found");
-        }
-    }
+            System.out.println("Type your name: ");
+            String rentName = scanner.next();
+            System.out.println("Type your surname: ");
+            String rentSurname = scanner.next();
+            System.out.println("When do you want rent a car?");
+            LocalDateTime rentCarDate = loadDateWhenUserRent();
+            System.out.println("When do you want return a car?");
+            LocalDateTime returnCarDate = loadDateWhenUserReturn();
 
-    private void handleEditCommand() {
-    }
+            CarRent carRent = new CarRent(rentCarDate, rentName, rentSurname, car);
 
-    private void handleListCommand() {
-        List<Car> carList = dao.returnCarsList();
-        for (Car car : carList) {
-            System.out.println(car);
+            daoRent.rentCar(carRent);
         }
-        System.out.println();
     }
 
     private void handleAddCommand() {
@@ -91,9 +86,86 @@ public class CarService {
         Gearbox gearbox = loadGearbox();
         System.out.println("Type amount of engine capacity");
         Double engineCapcity = scanner.nextDouble();
-        Car car = new Car(null, name, brand, productionDate, body, amountofPassenger, gearbox, engineCapcity);
+        Car car = new Car(name, brand, productionDate, body, amountofPassenger, gearbox, engineCapcity);
         dao.addCar(car);
     }
+
+    private void handleListCommand() {
+        List<Car> carList = dao.returnCarsList();
+        for (Car car : carList) {
+            System.out.println(car);
+        }
+        System.out.println();
+    }
+
+    private void handleShowCommand() {
+        System.out.println("What car do you want to see? (You have to get ID of product)");
+        Long idCar = scanner.nextLong();
+        List<Car> carList = dao.returnCarsList();
+        for (Car car : carList) {
+            if (car.getId() == idCar) {
+                System.out.println(car);
+            }
+        }
+    }
+
+    private void handleEditCommand() {
+        Car car;
+        System.out.println("What car do you need? (id)");
+        Long idCar = scanner.nextLong();
+        Optional<Car> optionalCar = dao.returnCar(idCar);
+        if (optionalCar.isPresent()) {
+            System.out.println("What you want to update? name/body/date(production/brand)/amount(passengers)/gearbox/engine(capacity)");
+            String text = scanner.next();
+            car = optionalCar.get();
+            if (text.equals("name")) {
+                System.out.println("Type name: ");
+                String name = scanner.next();
+                car.setName(name);
+            } else if (text.equals("body")) {
+                System.out.println("Type price: ");
+                Body body = loadBody();
+                car.setBody(body);
+            } else if (text.equals("date")) {
+                System.out.println("Type production date: ");
+                LocalDate productionDate = loadProductionDate();
+                car.setProductionDate(productionDate);
+            } else if (text.equals("brand")) {
+                System.out.println("Type new brand: ");
+                String brand = scanner.next();
+                car.setBrand(brand);
+            } else if (text.equals("amount")) {
+                System.out.println("Type amount of passengers: ");
+                int amount = scanner.nextInt();
+                car.setAmountOfPassengers(amount);
+            } else if (text.equals("gearbox")) {
+                System.out.println("Type gearbox: ");
+                Gearbox gearbox = loadGearbox();
+                car.setGearbox(gearbox);
+            } else if (text.equals("engine")) {
+                System.out.println("Type engine capacity");
+                Double engineCapacity = scanner.nextDouble();
+                car.setEngineCapacity(engineCapacity);
+            }
+            dao.updateCar(car);
+            System.out.println(car + "updated");
+        } else {
+            System.out.println("Input is incorrect");
+        }
+    }
+
+    private void handleDeleteCommand() {
+        System.out.println("Enter the ID of the car what you want to remove");
+        Long id = scanner.nextLong();
+        Optional<Car> optionalCar = dao.returnCar(id);
+        if (optionalCar.isPresent()) {
+            dao.deleteCar(optionalCar.get());
+            System.out.println("Car removed");
+        } else {
+            System.out.println("Car not found");
+        }
+    }
+
 
     private Gearbox loadGearbox() {
         Gearbox gearbox = null;
@@ -142,5 +214,46 @@ public class CarService {
             }
         } while (productionDate == null);
         return productionDate;
+    }
+
+    private LocalDateTime loadDateWhenUserRent() {
+        LocalDateTime firstDate = null;
+        do {
+            try {
+                System.out.println("Type expiry date: ");
+                String firstDay = scanner.next();
+
+                firstDate = LocalDateTime.parse(firstDay, FORMATTER);
+
+                LocalDateTime today = LocalDateTime.now();
+                if (firstDate.isBefore(today)) {
+                    throw new IllegalArgumentException("Date is before today");
+                }
+            } catch (IllegalArgumentException | DateTimeException iae) {
+                firstDate = null;
+                System.err.println("Wrong date, please type date in format: yyyy-MM-dd");
+            }
+        } while (firstDate == null);
+        return firstDate;
+    }
+    private LocalDateTime loadDateWhenUserReturn() {
+        LocalDateTime lastDate = null;
+        do {
+            try {
+                System.out.println("Type expiry date: ");
+                String firstDay = scanner.next();
+
+                lastDate = LocalDateTime.parse(firstDay, FORMATTER);
+
+                LocalDateTime today = LocalDateTime.now();
+                if (lastDate.isBefore(today)) {
+                    throw new IllegalArgumentException("Date is before today");
+                }
+            } catch (IllegalArgumentException | DateTimeException iae) {
+                lastDate = null;
+                System.err.println("Wrong date, please type date in format: yyyy-MM-dd");
+            }
+        } while (lastDate == null);
+        return lastDate;
     }
 }

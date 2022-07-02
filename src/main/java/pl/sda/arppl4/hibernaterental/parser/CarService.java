@@ -59,8 +59,8 @@ public class CarService {
         int amountOfPassenger = scanner.nextInt();
         Gearbox gearbox = loadGearbox();
         System.out.println("Type amount of engine capacity");
-        Double engineCapcity = scanner.nextDouble();
-        Car car = new Car(null, name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapcity);
+        Double engineCapacity = scanner.nextDouble();
+        Car car = new Car(null, name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapacity);
         dao.add(car);
     }
 

@@ -14,7 +14,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.Set;
 
 public class CarService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -78,15 +77,14 @@ public class CarService {
         String name = scanner.next();
         System.out.println("Type brand: ");
         String brand = scanner.next();
-        System.out.println("Type production date");
         LocalDate productionDate = loadProductionDate();
         Body body = loadBody();
         System.out.println("Type amount of passengers: ");
-        int amountofPassenger = scanner.nextInt();
+        int amountOfPassenger = scanner.nextInt();
         Gearbox gearbox = loadGearbox();
         System.out.println("Type amount of engine capacity");
         Double engineCapcity = scanner.nextDouble();
-        Car car = new Car(name, brand, productionDate, body, amountofPassenger, gearbox, engineCapcity);
+        Car car = new Car(name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapcity);
         dao.addCar(car);
     }
 
@@ -171,7 +169,7 @@ public class CarService {
         Gearbox gearbox = null;
         do {
             try {
-                System.out.println("Type unit: ");
+                System.out.println("Type gearbox: ");
                 String unitString = scanner.next();
                 gearbox = Gearbox.valueOf(unitString.toUpperCase());
             } catch (IllegalArgumentException iae) {
@@ -185,7 +183,7 @@ public class CarService {
         Body body = null;
         do {
             try {
-                System.out.println("Type unit: ");
+                System.out.println("Type body: ");
                 String unitString = scanner.next();
                 body = Body.valueOf(unitString.toUpperCase());
             } catch (IllegalArgumentException iae) {
@@ -199,7 +197,7 @@ public class CarService {
         LocalDate productionDate = null;
         do {
             try {
-                System.out.println("Type expiry date: ");
+                System.out.println("Type production date: ");
                 String expiryDateString = scanner.next();
 
                 productionDate = LocalDate.parse(expiryDateString, FORMATTER);

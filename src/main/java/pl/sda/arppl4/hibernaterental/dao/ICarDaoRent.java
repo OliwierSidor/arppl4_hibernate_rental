@@ -10,5 +10,4 @@ public interface ICarDaoRent {
     public Set<CarRent> returnCarSet();
     public Optional<CarRent> showCar(Long id);
 
-
 }

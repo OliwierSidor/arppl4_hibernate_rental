@@ -8,9 +8,7 @@
         <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
         <property name="connection.username"></property> <!-- TODO: wypełnić nazwę użytkownika-->
         <property name="connection.password"></property> <!--TODO: wypełnić hasło uzytkownika-->
-
-        <!--         DB schema will be updated if needed -->
         <property name="hibernate.hbm2ddl.auto">update</property>
-        <mapping class="pl.sda.arppl4.hibernaterental.model.Product"/>
+        <mapping class="pl.sda.arppl4.hibernaterental.model.Car"/>
     </session-factory>
 </hibernate-configuration>

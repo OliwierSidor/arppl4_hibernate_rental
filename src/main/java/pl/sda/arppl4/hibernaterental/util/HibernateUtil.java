@@ -10,14 +10,8 @@ public abstract class HibernateUtil {
     private static SessionFactory sessionFactory;
 
     static {
-        // Załadowanie "Registry" jako kolekcji parametrów konfiguracyjnych do rejestru.
-        // Stworzenie obiektu zawierającego zestaw ustawień.
         StandardServiceRegistry standardServiceRegistry = new StandardServiceRegistryBuilder().configure("hibernate.cfg.xml").build();
-
-        // Stworzenie obiektu metadata - dane opisujące połączenie z bazą danych.
         Metadata metadata = new MetadataSources(standardServiceRegistry).getMetadataBuilder().build();
-
-        // Wykorzystujemy metadane do skonfigurowania/parametryzacji fabryki. Tworzymy fabrykę.
         sessionFactory = metadata.getSessionFactoryBuilder().build();
     }
 

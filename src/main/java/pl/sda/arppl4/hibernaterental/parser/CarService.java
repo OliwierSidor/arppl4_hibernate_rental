@@ -3,6 +3,7 @@ package pl.sda.arppl4.hibernaterental.parser;
 import pl.sda.arppl4.hibernaterental.dao.GenericDao;
 import pl.sda.arppl4.hibernaterental.model.Body;
 import pl.sda.arppl4.hibernaterental.model.Car;
+import pl.sda.arppl4.hibernaterental.model.CarRental;
 import pl.sda.arppl4.hibernaterental.model.Gearbox;
 
 import java.time.DateTimeException;
@@ -12,23 +13,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 
 public class CarService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final Scanner scanner;
-    private final GenericDao<Car> dao;
+    private final GenericDao<Car> daoCar;
+    private final GenericDao<CarRental> daoCarRental;
 
 
-    public CarService(Scanner scanner, GenericDao dao) {
+    public CarService(Scanner scanner, GenericDao<Car> daoCar, GenericDao<CarRental> daoCarRental) {
         this.scanner = scanner;
-        this.dao = dao;
+        this.daoCar = daoCar;
+        this.daoCarRental = daoCarRental;
     }
-
 
     public void handleCommand() {
         String command;
         do {
-            System.out.println("What do you want? add/list/show/edit/delete");
+            System.out.println("What do you want? add/list/show/edit/delete/rent/return");
             command = scanner.next();
             if (command.equals("add")) {
                 handleAddCommand();
@@ -40,11 +43,92 @@ public class CarService {
                 handleEditCommand();
             } else if (command.equals("delete")) {
                 handleDeleteCommand();
-            } else {
-                System.out.println("Input is incorrect");
+            } else if (command.equals("rent")) {
+                handleRentCommand();
+            } else if (command.equals("return")) {
+                handleReturnCommand();
+            } else if (command.equals("check")) {
+                handleCheckCommand();
             }
-
         } while (!command.equals("quit"));
+    }
+
+    private void handleCheckCommand() {
+        System.out.println("Enter the ID of the car what you want to check");
+        Long id = scanner.nextLong();
+        Optional<Car> optionalCar = daoCar.showCar(id, Car.class);
+        if (optionalCar.isPresent()) {
+            Car car = optionalCar.get();
+            if (checkAvailableCar(car)){
+                System.out.println("Car is available");
+            } else {
+                System.out.println("Car not available");
+            }
+        } else {
+            System.out.println("Car not found");
+        }
+    }
+
+    private boolean checkAvailableCar(Car car) {
+        Optional<CarRental> optionalCarRental = findActivRent(car);
+        return optionalCarRental.isPresent();
+    }
+
+    private void handleReturnCommand() {
+        System.out.println("Enter the ID of the car what you want to rent");
+        Long id = scanner.nextLong();
+        Optional<Car> optionalCar = daoCar.showCar(id, Car.class);
+        if (optionalCar.isPresent()) {
+            Car car = optionalCar.get();
+            Optional<CarRental> optionalCarRental = findActivRent(car);
+            if (optionalCarRental.isPresent()) {
+                CarRental carRental = optionalCarRental.get();
+                carRental.setReturnDateTime(LocalDateTime.now());
+
+                daoCarRental.update(carRental);
+            } else {
+                System.out.println("Car not found");
+            }
+        } else {
+            System.out.println("Car not found");
+        }
+    }
+
+    private Optional<CarRental> findActivRent(Car car) {
+        if (car.getCarRentals().isEmpty()) {
+            return Optional.empty();
+        }
+        for (CarRental carRental : car.getCarRentals()) {
+            if (carRental.getReturnDateTime() == null) {
+                return Optional.of(carRental);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void handleRentCommand() {
+        System.out.println("Enter the ID of the car what you want to rent");
+        Long id = scanner.nextLong();
+        Optional<Car> optionalCar = daoCar.showCar(id, Car.class);
+        if (optionalCar.isPresent()) {
+            Car car = optionalCar.get();
+
+            if(!checkAvailableCar(car)){
+
+                System.out.println("Type name");
+                String name = scanner.next();
+                System.out.println("Type surname");
+                String surname = scanner.next();
+
+                LocalDateTime dataTimeRent = LocalDateTime.now();
+                System.out.println("Date and time rent: " + dataTimeRent);
+
+                CarRental carRental = new CarRental(name, surname, dataTimeRent, car);
+                daoCarRental.add(carRental);}
+
+        } else {
+            System.out.println("Car not found");
+        }
     }
 
 
@@ -60,12 +144,12 @@ public class CarService {
         Gearbox gearbox = loadGearbox();
         System.out.println("Type amount of engine capacity");
         Double engineCapacity = scanner.nextDouble();
-        Car car = new Car(null, name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapacity);
-        dao.add(car);
+        Car car = new Car(name, brand, productionDate, body, amountOfPassenger, gearbox, engineCapacity);
+        daoCar.add(car);
     }
 
     private void handleListCommand() {
-        List<Car> carList = dao.list(Car.class);
+        List<Car> carList = daoCar.list(Car.class);
         for (Car car : carList) {
             System.out.println(car);
         }
@@ -75,7 +159,7 @@ public class CarService {
     private void handleShowCommand() {
         System.out.println("What car do you want to see? (You have to get ID of car)");
         Long idCar = scanner.nextLong();
-        List<Car> carList = dao.list(Car.class);
+        List<Car> carList = daoCar.list(Car.class);
         for (Car car : carList) {
             if (car.getId() == idCar) {
                 System.out.println(car);
@@ -87,7 +171,7 @@ public class CarService {
         Car car;
         System.out.println("What car do you need? (id)");
         Long idCar = scanner.nextLong();
-        Optional<Car> optionalCar = dao.showCar(idCar, Car.class);
+        Optional<Car> optionalCar = daoCar.showCar(idCar, Car.class);
         if (optionalCar.isPresent()) {
             System.out.println("What you want to update? name/body/date(production/brand)/amount(passengers)/gearbox/engine(capacity)");
             String text = scanner.next();
@@ -121,7 +205,7 @@ public class CarService {
                 Double engineCapacity = scanner.nextDouble();
                 car.setEngineCapacity(engineCapacity);
             }
-            dao.update(car);
+            daoCar.update(car);
             System.out.println(car + "updated");
         } else {
             System.out.println("Input is incorrect");
@@ -131,9 +215,9 @@ public class CarService {
     private void handleDeleteCommand() {
         System.out.println("Enter the ID of the car what you want to remove");
         Long id = scanner.nextLong();
-        Optional<Car> optionalCar = dao.showCar(id, Car.class);
+        Optional<Car> optionalCar = daoCar.showCar(id, Car.class);
         if (optionalCar.isPresent()) {
-            dao.remove(optionalCar.get());
+            daoCar.remove(optionalCar.get());
             System.out.println("Car removed");
         } else {
             System.out.println("Car not found");

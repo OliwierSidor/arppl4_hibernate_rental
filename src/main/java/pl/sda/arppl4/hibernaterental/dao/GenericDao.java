@@ -1,11 +1,15 @@
 package pl.sda.arppl4.hibernaterental.dao;
 
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionException;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+import pl.sda.arppl4.hibernaterental.model.Car;
 import pl.sda.arppl4.hibernaterental.util.HibernateUtil;
 
 import java.util.*;
@@ -56,14 +60,19 @@ public class GenericDao<T> {
         try (Session session = factory.openSession()) {
             TypedQuery<T> query = session.createQuery("from " + classType.getName(), classType);
             List<T> queryResult = query.getResultList();
-
+//            CriteriaBuilder cb = session.getCriteriaBuilder();
+//            CriteriaQuery<T> criteriaQuery = cb.createQuery(classType);
+//            Root<T> rootTable = criteriaQuery.from(classType);
+//            criteriaQuery.select(rootTable);
+//            List<T> queryResult = session.createQuery(criteriaQuery).list();
             list.addAll(queryResult);
         } catch (SessionException sessionException) {
-            System.err.println("Błąd wczytywania danych.");
+            System.err.println("Wrong data");
         }
 
         return list;
     }
+
 
     public void update(T updateObject) {
         SessionFactory fabrykaPolaczen = HibernateUtil.getSessionFactory();
@@ -81,6 +90,7 @@ public class GenericDao<T> {
             }
         }
     }
+
     public void rent(T carRent) {
         SessionFactory factory = HibernateUtil.getSessionFactory();
         Transaction transaction = null;
@@ -95,7 +105,7 @@ public class GenericDao<T> {
         }
     }
 
-    public Optional <T> showCar(Long id, Class<T> classType) {
+    public Optional<T> showCar(Long id, Class<T> classType) {
         SessionFactory factory = HibernateUtil.getSessionFactory();
         try (Session session = factory.openSession()) {
             T objectCarRent = session.get(classType, id);

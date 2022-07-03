@@ -71,7 +71,7 @@ public class CarService {
 
     private boolean checkAvailableCar(Car car) {
         Optional<CarRental> optionalCarRental = findActivRent(car);
-        return optionalCarRental.isPresent();
+        return !optionalCarRental.isPresent();
     }
 
     private void handleReturnCommand() {
